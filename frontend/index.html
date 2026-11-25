@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>RUSAC · Rutas Seguras y Alertas Comunitarias</title>
+  <meta name="theme-color" content="#17402a">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚨</text></svg>">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <aside id="panel" aria-label="Panel de rutas">
+      <header class="brand">
+        <div class="logo" aria-hidden="true">🚨</div>
+        <div>
+          <h1>RUSAC</h1>
+          <p>Seguridad compartida, decisiones más claras</p>
+        </div>
+        <button id="togglePanel" class="icon-btn only-mobile" aria-label="Mostrar u ocultar panel">▾</button>
+      </header>
+
+      <div class="panel-body">
+        <div id="notices"></div>
+        <section class="field">
+          <label for="preset">Trayecto</label>
+          <select id="preset"></select>
+          <p class="hint" id="pickHint" hidden>Toca el mapa para marcar el <b>origen</b> y luego el <b>destino</b>.</p>
+        </section>
+
+        <section class="field">
+          <div class="label-row">
+            <label for="hour">Hora de salida</label>
+            <span><b id="hourLabel">--:--</b> <button id="nowBtn" class="link-btn">Ahora</button></span>
+          </div>
+          <input id="hour" type="range" min="0" max="23" step="1" value="21">
+          <div class="scale"><span>0 h</span><span>6</span><span>12</span><span>18</span><span>23 h</span></div>
+        </section>
+
+        <section class="field">
+          <div class="label-row">
+            <label for="alpha">¿Cuánto priorizas la seguridad?</label>
+            <b id="alphaLabel">4</b>
+          </div>
+          <input id="alpha" type="range" min="0" max="10" step="0.5" value="4">
+          <div class="scale"><span>Ruta más corta</span><span>Ruta más segura</span></div>
+        </section>
+
+        <section id="results" aria-live="polite">
+          <p class="hint">Elige un trayecto para comparar las rutas.</p>
+        </section>
+
+        <section class="toggles">
+          <label class="switch"><input type="checkbox" id="showRisk"> <span>Semáforo de riesgo por calle</span></label>
+          <label class="switch"><input type="checkbox" id="showReports" checked> <span>Reportes de la comunidad</span></label>
+        </section>
+
+        <section class="actions">
+          <button id="walkBtn" class="btn">▶ Simular caminata</button>
+          <button id="gpsBtn" class="btn ghost" title="Usa el GPS del dispositivo">📍 Usar mi GPS</button>
+        </section>
+
+        <details class="about">
+          <summary>¿Cómo se calcula la ruta segura?</summary>
+          <p>Cada calle tiene un <b>riesgo de 0 a 1</b> según la hora: histórico de incidentes cercanos,
+             tipo de calle (andadores y callejones pesan más de noche) y reportes recientes de la comunidad,
+             que pierden fuerza con el tiempo.</p>
+          <p><code>costo = longitud × (1 + α × riesgo)</code></p>
+          <p>Con α = 0 se obtiene la ruta más corta; al subirlo, aceptas caminar más para evitar riesgo.
+             Un reporte sin confirmar pesa la mitad; con 2 confirmaciones se considera verificado.
+             Una calle cerrada verificada se excluye.</p>
+          <button id="clearBtn" class="link-btn danger">Borrar todos los reportes (demo)</button>
+        </details>
+      </div>
+
+      <footer class="disclaimer">
+        Prototipo · <b>No sustituye al 911</b> · Tu ubicación no se guarda
+      </footer>
+    </aside>
+
+    <main id="mapWrap">
+      <div id="map" role="application" aria-label="Mapa"></div>
+      <div id="banner" role="status" hidden></div>
+      <button id="reportFab" class="fab" aria-haspopup="dialog">⚠ Reportar</button>
+      <div id="legend" hidden>
+        <span><i class="dot verde"></i>bajo</span>
+        <span><i class="dot amarillo"></i>medio</span>
+        <span><i class="dot rojo"></i>alto</span>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="reportDialog" aria-labelledby="reportTitle">
+    <form method="dialog">
+      <h2 id="reportTitle">¿Qué está pasando?</h2>
+      <p class="hint" id="reportWhere">Se reporta en tu posición actual (marcador “Tú”). Es anónimo.</p>
+      <div id="reportGrid" class="report-grid"></div>
+      <button value="cancel" class="btn ghost full">Cancelar</button>
+    </form>
+  </dialog>
+
+  <div id="toast" role="status" hidden></div>
+
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
